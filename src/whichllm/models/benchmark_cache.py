@@ -15,14 +15,14 @@ BENCHMARK_CACHE = CACHE_DIR / "benchmark.json"
 DEFAULT_TTL_SECONDS = 24 * 3600  # 24 hours
 
 
-def load_benchmark_cache() -> dict[str, float] | None:
-    """Load cached benchmark scores. Returns None if expired or missing."""
+def load_benchmark_cache(ttl: float | None = DEFAULT_TTL_SECONDS) -> dict[str, float] | None:
+    """Load cached benchmark scores. Returns None if expired or missing; `ttl=None` accepts any age."""
     if not BENCHMARK_CACHE.exists():
         return None
     try:
         data = json.loads(BENCHMARK_CACHE.read_text(encoding="utf-8"))
         cached_at = data.get("cached_at", 0)
-        if time.time() - cached_at > DEFAULT_TTL_SECONDS:
+        if ttl is not None and time.time() - cached_at > ttl:
             logger.debug("Benchmark cache expired")
             return None
         return data.get("scores", {})

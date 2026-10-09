@@ -17,7 +17,7 @@ from whichllm.models.benchmark import (
     load_benchmark_cache,
     save_benchmark_cache,
 )
-from whichllm.models.cache import load_cache, save_cache
+from whichllm.models.cache import DEFAULT_TTL_SECONDS, load_cache, save_cache
 from whichllm.models.fetcher import dicts_to_models, fetch_models, models_to_dicts
 from whichllm.models.grouper import group_models
 
@@ -30,16 +30,21 @@ def recommend(
     profile: str = "general",
     quant: str | None = None,
     refresh: bool = False,
+    stale_ok: bool = False,
 ) -> list[CompatibilityResult]:
-    """The best models for `hardware`, best first. Raises on a failed model fetch; benchmark data is optional."""
-    cached = None if refresh else load_cache()
+    """The best models for `hardware`, best first. Raises on a failed model fetch; benchmark data is optional.
+
+    `stale_ok` ranks from cached data of any age, so a caller can show something now and refresh in the background.
+    """
+    ttl = None if stale_ok else DEFAULT_TTL_SECONDS
+    cached = None if refresh else load_cache(ttl)
     if cached is not None:
         models = dicts_to_models(cached)
     else:
         models = asyncio.run(fetch_models(include_vision=profile in ("vision", "any")))
         save_cache(models_to_dicts(models))
 
-    scores = None if refresh else load_benchmark_cache()
+    scores = None if refresh else load_benchmark_cache(ttl)
     if scores is None:
         try:
             scores = asyncio.run(fetch_benchmark_scores())
