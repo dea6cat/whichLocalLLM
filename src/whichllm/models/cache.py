@@ -20,8 +20,8 @@ def _ensure_cache_dir() -> None:
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def load_cache() -> list[dict] | None:
-    """Load cached model data if valid. Returns None if expired or missing."""
+def load_cache(ttl: float | None = DEFAULT_TTL_SECONDS) -> list[dict] | None:
+    """Load cached model data if valid. Returns None if expired or missing; `ttl=None` accepts any age."""
     if not CACHE_FILE.exists():
         return None
 
@@ -31,7 +31,7 @@ def load_cache() -> list[dict] | None:
             logger.debug("Model cache schema is outdated")
             return None
         cached_at = data.get("cached_at", 0)
-        if time.time() - cached_at > DEFAULT_TTL_SECONDS:
+        if ttl is not None and time.time() - cached_at > ttl:
             logger.debug("Cache expired")
             return None
         return data.get("models", [])

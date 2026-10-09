@@ -50,10 +50,10 @@ def _sync_cache_module_globals() -> None:
     _cache_module.BENCHMARK_CACHE = BENCHMARK_CACHE
 
 
-def load_benchmark_cache() -> dict[str, float] | None:
+def load_benchmark_cache(ttl: float | None = DEFAULT_TTL_SECONDS) -> dict[str, float] | None:
     """Load cached benchmark scores through the legacy shim globals."""
     _sync_cache_module_globals()
-    return _cache_module.load_benchmark_cache()
+    return _cache_module.load_benchmark_cache(ttl)
 
 
 def save_benchmark_cache(scores: dict[str, float]) -> None:
