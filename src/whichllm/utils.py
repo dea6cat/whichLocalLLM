@@ -11,7 +11,7 @@ import click
 def _current_version() -> str:
     """Return installed package version."""
     try:
-        return version("whichllm")
+        return version("whichllm-clyde")
     except PackageNotFoundError:
         return "unknown"
 
